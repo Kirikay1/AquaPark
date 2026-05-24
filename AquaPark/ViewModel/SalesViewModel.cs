@@ -15,6 +15,8 @@ namespace AquaPark.ViewModel
         private ObservableCollection<Sale> _sales = null!;
         private Sale _selectedSale = null!;
 
+        private string _searchText = string.Empty;
+
         public ObservableCollection<Sale> Sales
         {
             get => _sales;
@@ -32,6 +34,17 @@ namespace AquaPark.ViewModel
             {
                 _selectedSale = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                LoadSales();
             }
         }
 
@@ -54,14 +67,25 @@ namespace AquaPark.ViewModel
 
         private void LoadSales()
         {
+            var query = AppData.db.Sales
+                .Include(s => s.Ticket)
+                    .ThenInclude(t => t.Client)
+                .Include(s => s.Employee)
+                    .ThenInclude(e => e.User)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(s =>
+                    s.Ticket.TicketId.ToString().Contains(SearchText) ||
+                    s.Ticket.Client.FullName.Contains(SearchText) ||
+                    s.Employee.User.FullName.Contains(SearchText) ||
+                    s.TotalAmount.ToString().Contains(SearchText));
+            }
+
             Sales = new ObservableCollection<Sale>(
-                AppData.db.Sales
-                    .Include(s => s.Ticket)
-                        .ThenInclude(t => t.Client)
-                    .Include(s => s.Employee)
-                        .ThenInclude(e => e.User)
-                    .AsNoTracking()
-                    .ToList()
+                query.ToList()
             );
         }
 
