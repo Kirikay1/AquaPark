@@ -51,7 +51,8 @@
                         Foreground="#16697A"
                         BorderThickness="0"
                         Cursor="Hand"
-                        Command="{Binding ClientsCommand}"/>
+                        Command="{Binding ClientsCommand}"
+                        Visibility="{Binding ClientsVisibility}"/>
 
                 <Button Content="Билеты"
                         Height="42"
@@ -61,7 +62,8 @@
                         Foreground="#16697A"
                         BorderThickness="0"
                         Cursor="Hand"
-                        Command="{Binding TicketsCommand}"/>
+                        Command="{Binding TicketsCommand}"
+                        Visibility="{Binding TicketsVisibility}"/>
 
                 <Button Content="Аттракционы"
                         Height="42"
@@ -71,7 +73,8 @@
                         Foreground="#16697A"
                         BorderThickness="0"
                         Cursor="Hand"
-                        Command="{Binding AttractionsCommand}"/>
+                        Command="{Binding AttractionsCommand}"
+                        Visibility="{Binding AttractionsVisibility}"/>
 
                 <Button Content="Продажи"
                         Height="42"
@@ -81,7 +84,8 @@
                         Foreground="#16697A"
                         BorderThickness="0"
                         Cursor="Hand"
-                        Command="{Binding SalesCommand}"/>
+                        Command="{Binding SalesCommand}"
+                        Visibility="{Binding SalesVisibility}"/>
 
                 <Button Content="Оплаты"
                         Height="42"
@@ -91,7 +95,8 @@
                         Foreground="#16697A"
                         BorderThickness="0"
                         Cursor="Hand"
-                        Command="{Binding PaymentsCommand}"/>
+                        Command="{Binding PaymentsCommand}"
+                        Visibility="{Binding PaymentsVisibility}"/>
 
                 <Button Content="Выход"
                         Height="42"

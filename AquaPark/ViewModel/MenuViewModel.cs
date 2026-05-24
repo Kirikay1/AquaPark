@@ -13,6 +13,16 @@ namespace AquaPark.ViewModel
 
         private string _currentUserRole = string.Empty;
 
+        private Visibility _clientsVisibility = Visibility.Visible;
+
+        private Visibility _ticketsVisibility = Visibility.Visible;
+
+        private Visibility _attractionsVisibility = Visibility.Visible;
+
+        private Visibility _salesVisibility = Visibility.Visible;
+
+        private Visibility _paymentsVisibility = Visibility.Visible;
+
         public string CurrentUserName
         {
             get => _currentUserName;
@@ -29,6 +39,56 @@ namespace AquaPark.ViewModel
             set
             {
                 _currentUserRole = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility ClientsVisibility
+        {
+            get => _clientsVisibility;
+            set
+            {
+                _clientsVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility TicketsVisibility
+        {
+            get => _ticketsVisibility;
+            set
+            {
+                _ticketsVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility AttractionsVisibility
+        {
+            get => _attractionsVisibility;
+            set
+            {
+                _attractionsVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility SalesVisibility
+        {
+            get => _salesVisibility;
+            set
+            {
+                _salesVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility PaymentsVisibility
+        {
+            get => _paymentsVisibility;
+            set
+            {
+                _paymentsVisibility = value;
                 OnPropertyChanged();
             }
         }
@@ -50,6 +110,7 @@ namespace AquaPark.ViewModel
             LogoutCommand = new RelayCommand(Logout);
 
             LoadCurrentUser();
+            SetRoleAccess();
         }
 
         private void OpenClientsPage(object? parameter)
@@ -123,6 +184,44 @@ namespace AquaPark.ViewModel
 
             CurrentUserName = AppData.CurrentUser.FullName;
             CurrentUserRole = AppData.CurrentUser.Role?.RoleName ?? "Роль не указана";
+        }
+
+        private void SetRoleAccess()
+        {
+            string roleName = AppData.CurrentUser?.Role?.RoleName ?? "";
+
+            ClientsVisibility = Visibility.Collapsed;
+            TicketsVisibility = Visibility.Collapsed;
+            AttractionsVisibility = Visibility.Collapsed;
+            SalesVisibility = Visibility.Collapsed;
+            PaymentsVisibility = Visibility.Collapsed;
+
+            if (roleName == "Администратор")
+            {
+                ClientsVisibility = Visibility.Visible;
+                TicketsVisibility = Visibility.Visible;
+                AttractionsVisibility = Visibility.Visible;
+                SalesVisibility = Visibility.Visible;
+                PaymentsVisibility = Visibility.Visible;
+            }
+            else if (roleName == "Менеджер")
+            {
+                ClientsVisibility = Visibility.Visible;
+                TicketsVisibility = Visibility.Visible;
+                AttractionsVisibility = Visibility.Visible;
+                SalesVisibility = Visibility.Visible;
+                PaymentsVisibility = Visibility.Visible;
+            }
+            else if (roleName == "Кассир")
+            {
+                TicketsVisibility = Visibility.Visible;
+                SalesVisibility = Visibility.Visible;
+                PaymentsVisibility = Visibility.Visible;
+            }
+            else if (roleName == "Сотрудник")
+            {
+                AttractionsVisibility = Visibility.Visible;
+            }
         }
     }
 }
