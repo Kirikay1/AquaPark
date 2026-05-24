@@ -30,7 +30,8 @@
                         Background="White"
                         Foreground="#16697A"
                         BorderThickness="0"
-                        Cursor="Hand"/>
+                        Cursor="Hand"
+                        Command="{Binding ClientsCommand}"/>
 
                 <Button Content="Билеты"
                         Height="42"
