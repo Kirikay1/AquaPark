@@ -8,6 +8,9 @@
     <Compile Update="Views\AddClientPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\AddSalePage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\AddTicketPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -26,10 +29,16 @@
     <Compile Update="Views\EditClientPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\EditSalePage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\EditTicketPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\MenuPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\SalesPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\TicketsPage.xaml.cs">

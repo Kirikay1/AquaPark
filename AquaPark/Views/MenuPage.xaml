@@ -60,7 +60,8 @@
                         Background="White"
                         Foreground="#16697A"
                         BorderThickness="0"
-                        Cursor="Hand"/>
+                        Cursor="Hand"
+                        Command="{Binding SalesCommand}"/>
 
                 <Button Content="Оплаты"
                         Height="42"
