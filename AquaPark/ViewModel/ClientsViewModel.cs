@@ -1,0 +1,144 @@
+﻿using AquaPark.Data;
+using AquaPark.Models;
+using AquaPark.Services;
+using AquaPark.Views;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+
+namespace AquaPark.ViewModel
+{
+    public class ClientsViewModel : BaseViewModel
+    {
+        private ObservableCollection<Client> _clients;
+        private Client _selectedClient;
+
+        public ObservableCollection<Client> Clients
+        {
+            get => _clients;
+            set
+            {
+                _clients = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Client SelectedClient
+        {
+            get => _selectedClient;
+            set
+            {
+                _selectedClient = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand RefreshCommand { get; }
+        public ICommand BackCommand { get; }
+        public ICommand AddCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand EditCommand { get; }
+
+        public ClientsViewModel()
+        {
+            RefreshCommand = new RelayCommand(Refresh);
+            BackCommand = new RelayCommand(Back);
+            AddCommand = new RelayCommand(Add);
+            DeleteCommand = new RelayCommand(Delete);
+            EditCommand = new RelayCommand(Edit);
+
+            LoadClients();
+        }
+
+        private void LoadClients()
+        {
+            Clients = new ObservableCollection<Client>(
+                AppData.db.Clients.AsNoTracking().ToList()
+            );
+        }
+
+        private void Refresh(object? parameter)
+        {
+            LoadClients();
+        }
+
+        private void Back(object? parameter)
+        {
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new MenuPage());
+            }
+        }
+
+        private void Add(object? parameter)
+        {
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new AddClientPage());
+            }
+        }
+
+        private void Delete(object? parameter)
+        {
+            if (SelectedClient == null)
+            {
+                MessageBox.Show("Выберите клиента для удаления",
+                                "Удаление",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                return;
+            }
+
+            MessageBoxResult result = MessageBox.Show("Вы действительно хотите удалить выбранного клиента?",
+                                                      "Подтверждение удаления",
+                                                      MessageBoxButton.YesNo,
+                                                      MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            var client = AppData.db.Clients
+                .FirstOrDefault(c => c.ClientId == SelectedClient.ClientId);
+
+            if (client == null)
+            {
+                MessageBox.Show("Клиент не найден",
+                                "Ошибка",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+                return;
+            }
+
+            AppData.db.Clients.Remove(client);
+            AppData.db.SaveChanges();
+
+            LoadClients();
+
+            MessageBox.Show("Клиент успешно удален",
+                            "Удаление",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+        }
+
+        private void Edit(object? parameter)
+        {
+            if (SelectedClient == null)
+            {
+                MessageBox.Show("Выберите клиента для изменения",
+                                "Изменение",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                return;
+            }
+
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new EditClientPage(SelectedClient.ClientId));
+            }
+        }
+    }
+}

@@ -11,11 +11,23 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Клиенты"
-                   FontSize="28"
-                   FontWeight="Bold"
-                   Foreground="#16697A"
-                   Margin="0 0 0 20"/>
+        <DockPanel Grid.Row="0" Margin="0 0 0 20">
+            <TextBlock Text="Клиенты"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="#16697A"
+                       DockPanel.Dock="Left"/>
+
+            <Button Content="Назад"
+                    Width="100"
+                    Height="35"
+                    Background="#16697A"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    HorizontalAlignment="Right"
+                    Command="{Binding BackCommand}"/>
+        </DockPanel>
 
         <StackPanel Grid.Row="1"
                     Orientation="Horizontal"
@@ -28,7 +40,8 @@
                     Background="#16697A"
                     Foreground="White"
                     BorderThickness="0"
-                    Cursor="Hand"/>
+                    Cursor="Hand"
+                    Command="{Binding AddCommand}"/>
 
             <Button Content="Изменить"
                     Width="110"
@@ -37,7 +50,8 @@
                     Background="#16697A"
                     Foreground="White"
                     BorderThickness="0"
-                    Cursor="Hand"/>
+                    Cursor="Hand"
+                    Command="{Binding EditCommand}"/>
 
             <Button Content="Удалить"
                     Width="110"
@@ -46,19 +60,23 @@
                     Background="#D62828"
                     Foreground="White"
                     BorderThickness="0"
-                    Cursor="Hand"/>
+                    Cursor="Hand"
+                    Command="{Binding DeleteCommand}"/>
 
             <Button Content="Обновить"
                     Width="110"
                     Height="36"
-                    Background="#4A9D8F"
+                    Margin="0 0 10 0"
+                    Background="#16697A"
                     Foreground="White"
                     BorderThickness="0"
-                    Cursor="Hand"/>
+                    Cursor="Hand"
+                    Command="{Binding RefreshCommand}"/>
         </StackPanel>
 
         <DataGrid Grid.Row="2"
-                  x:Name="ClientsDataGrid"
+                  ItemsSource="{Binding Clients}"
+                  SelectedItem="{Binding SelectedClient}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
@@ -89,5 +107,6 @@
                                     Width="180"/>
             </DataGrid.Columns>
         </DataGrid>
+
     </Grid>
 </Page>

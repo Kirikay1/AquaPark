@@ -1,4 +1,5 @@
 ﻿using AquaPark.Data;
+using AquaPark.ViewModel;
 using System.Windows.Controls;
 
 namespace AquaPark.Views
@@ -11,12 +12,7 @@ namespace AquaPark.Views
         public ClientsPage()
         {
             InitializeComponent();
-            LoadClients();
-        }
-
-        private void LoadClients()
-        {
-            ClientsDataGrid.ItemsSource = AppData.db.Clients.ToList();
+            DataContext = new ClientsViewModel();
         }
     }
 }
