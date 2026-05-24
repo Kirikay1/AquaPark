@@ -80,7 +80,8 @@
                         Background="#D62828"
                         Foreground="White"
                         BorderThickness="0"
-                        Cursor="Hand"/>
+                        Cursor="Hand"
+                        Command="{Binding LogoutCommand}"/>
 
             </StackPanel>
         </Border>

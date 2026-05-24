@@ -1,5 +1,6 @@
 ﻿using AquaPark.Services;
 using AquaPark.Views;
+using System.Drawing.Interop;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,6 +13,7 @@ namespace AquaPark.ViewModel
         public ICommand AttractionsCommand { get; }
         public ICommand SalesCommand { get; }
         public ICommand PaymentsCommand { get; }
+        public ICommand LogoutCommand { get; }
 
         public MenuViewModel()
         {
@@ -20,6 +22,7 @@ namespace AquaPark.ViewModel
             AttractionsCommand = new RelayCommand(OpenAttractionsPage);
             SalesCommand = new RelayCommand(OpenSalesPage);
             PaymentsCommand = new RelayCommand(OpenPaymentsPage);
+            LogoutCommand = new RelayCommand(Logout);
         }
 
         private void OpenClientsPage(object? parameter)
@@ -59,6 +62,24 @@ namespace AquaPark.ViewModel
             if (Application.Current.MainWindow is MainWindow mainWindow)
             {
                 mainWindow.OpenPage(new PaymentsPage());
+            }
+        }
+
+        private void Logout(object? parameter)
+        {
+            MessageBoxResult result = MessageBox.Show("Вы действительно хотите выйти из аккаунта?",
+                                                      "Выход",
+                                                      MessageBoxButton.YesNo,
+                                                      MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new AuthorizationPage());
             }
         }
     }
