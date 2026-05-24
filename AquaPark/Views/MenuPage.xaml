@@ -50,7 +50,8 @@
                         Background="White"
                         Foreground="#16697A"
                         BorderThickness="0"
-                        Cursor="Hand"/>
+                        Cursor="Hand"
+                        Command="{Binding AttractionsCommand}"/>
 
                 <Button Content="Продажи"
                         Height="42"
