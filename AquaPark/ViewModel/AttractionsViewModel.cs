@@ -15,6 +15,8 @@ namespace AquaPark.ViewModel
         private ObservableCollection<Attraction> _attractions = null!;
         private Attraction _selectedAttraction = null!;
 
+        private string _searchText = string.Empty;
+
         public ObservableCollection<Attraction> Attractions
         {
             get => _attractions;
@@ -32,6 +34,17 @@ namespace AquaPark.ViewModel
             {
                 _selectedAttraction = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                LoadAttractions();
             }
         }
 
@@ -54,11 +67,21 @@ namespace AquaPark.ViewModel
 
         private void LoadAttractions()
         {
+            var query = AppData.db.Attractions
+                .Include(a => a.Zone)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(a =>
+                    a.AttractionName.Contains(SearchText) ||
+                    (a.Description != null && a.Description.Contains(SearchText)) ||
+                    a.Zone.ZoneName.Contains(SearchText));
+            }
+
             Attractions = new ObservableCollection<Attraction>(
-                AppData.db.Attractions
-                    .Include(a => a.Zone)
-                    .AsNoTracking()
-                    .ToList()
+                query.ToList()
             );
         }
 
