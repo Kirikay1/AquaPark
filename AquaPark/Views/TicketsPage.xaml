@@ -72,6 +72,22 @@
                     BorderThickness="0"
                     Cursor="Hand"
                     Command="{Binding RefreshCommand}"/>
+
+            <TextBlock Text="Поиск:"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       Foreground="#333333"
+                       Margin="20 0 0 0"/>
+
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Width="220"
+                     Height="36"
+                     FontSize="14"
+                     Padding="10 0"
+                     VerticalContentAlignment="Center"
+                     BorderBrush="#B8DDE8"
+                     BorderThickness="1"
+                     Margin="10 0 0 0"/>
         </StackPanel>
 
         <DataGrid Grid.Row="2"

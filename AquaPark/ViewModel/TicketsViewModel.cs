@@ -15,6 +15,8 @@ namespace AquaPark.ViewModel
         private ObservableCollection<Ticket> _tickets = null!;
         private Ticket _selectedTicket = null!;
 
+        private string _searchText = string.Empty;
+
         public ObservableCollection<Ticket> Tickets
         {
             get => _tickets;
@@ -32,6 +34,17 @@ namespace AquaPark.ViewModel
             {
                 _selectedTicket = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                LoadTickets();
             }
         }
 
@@ -54,12 +67,22 @@ namespace AquaPark.ViewModel
 
         private void LoadTickets()
         {
+            var query = AppData.db.Tickets
+                .Include(t => t.TicketType)
+                .Include(t => t.Client)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(t =>
+                    t.Status.Contains(SearchText) ||
+                    t.TicketType.TicketName.Contains(SearchText) ||
+                    (t.Client != null && t.Client.FullName.Contains(SearchText)));
+            }
+
             Tickets = new ObservableCollection<Ticket>(
-                AppData.db.Tickets
-                    .Include(t => t.TicketType)
-                    .Include(t => t.Client)
-                    .AsNoTracking()
-                    .ToList()
+                query.ToList()
             );
         }
 
