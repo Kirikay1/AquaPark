@@ -124,89 +124,171 @@
                                       Opacity="0.18"/>
                 </Border.Effect>
 
-                <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="300"/>
+                    </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Главное меню"
-                               FontSize="28"
-                               FontWeight="Bold"
-                               Foreground="#16697A"
-                               Margin="0 0 0 15"/>
+                    <StackPanel Grid.Column="0"
+                                Margin="0 0 25 0">
 
-                    <TextBlock Text="Добро пожаловать в автоматизированное рабочее место аквапарка."
-                               FontSize="16"
-                               Foreground="#333333"
-                               TextWrapping="Wrap"
-                               Margin="0 0 0 30"/>
+                        <TextBlock Text="Главное меню"
+                                   FontSize="28"
+                                   FontWeight="Bold"
+                                   Foreground="#16697A"
+                                   Margin="0 0 0 15"/>
 
-                    <UniformGrid Columns="2"
-                                 Rows="2">
+                        <TextBlock Text="Добро пожаловать в автоматизированное рабочее место аквапарка."
+                                   FontSize="16"
+                                   Foreground="#333333"
+                                   TextWrapping="Wrap"
+                                   Margin="0 0 0 30"/>
+
+                        <UniformGrid Columns="2"
+                                     Rows="2">
+
+                            <Border Background="#F2FBFD"
+                                    CornerRadius="14"
+                                    Padding="20"
+                                    Margin="0 0 15 15">
+                                <StackPanel>
+                                    <TextBlock Text="Клиенты"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#16697A"/>
+                                    <TextBlock Text="Учет посетителей аквапарка"
+                                               FontSize="14"
+                                               Foreground="#444444"
+                                               Margin="0 8 0 0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#F2FBFD"
+                                    CornerRadius="14"
+                                    Padding="20"
+                                    Margin="0 0 0 15">
+                                <StackPanel>
+                                    <TextBlock Text="Билеты"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#16697A"/>
+                                    <TextBlock Text="Продажа и проверка билетов"
+                                               FontSize="14"
+                                               Foreground="#444444"
+                                               Margin="0 8 0 0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#F2FBFD"
+                                    CornerRadius="14"
+                                    Padding="20"
+                                    Margin="0 0 15 0">
+                                <StackPanel>
+                                    <TextBlock Text="Аттракционы"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#16697A"/>
+                                    <TextBlock Text="Управление зонами и расписанием"
+                                               FontSize="14"
+                                               Foreground="#444444"
+                                               Margin="0 8 0 0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#F2FBFD"
+                                    CornerRadius="14"
+                                    Padding="20">
+                                <StackPanel>
+                                    <TextBlock Text="Продажи"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#16697A"/>
+                                    <TextBlock Text="Контроль продаж и оплат"
+                                               FontSize="14"
+                                               Foreground="#444444"
+                                               Margin="0 8 0 0"/>
+                                </StackPanel>
+                            </Border>
+
+                        </UniformGrid>
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1">
+
+                        <TextBlock Text="Статистика"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   Foreground="#16697A"
+                                   Margin="0 0 0 15"/>
 
                         <Border Background="#F2FBFD"
                                 CornerRadius="14"
-                                Padding="20"
-                                Margin="0 0 15 15">
+                                Padding="18"
+                                Margin="0 0 0 12">
                             <StackPanel>
                                 <TextBlock Text="Клиенты"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           Foreground="#16697A"/>
-                                <TextBlock Text="Учет посетителей аквапарка"
                                            FontSize="14"
-                                           Foreground="#444444"
-                                           Margin="0 8 0 0"/>
+                                           Foreground="#444444"/>
+                                <TextBlock Text="{Binding ClientsCount}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#16697A"
+                                           Margin="0 4 0 0"/>
                             </StackPanel>
                         </Border>
 
                         <Border Background="#F2FBFD"
                                 CornerRadius="14"
-                                Padding="20"
-                                Margin="0 0 0 15">
+                                Padding="18"
+                                Margin="0 0 0 12">
                             <StackPanel>
                                 <TextBlock Text="Билеты"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           Foreground="#16697A"/>
-                                <TextBlock Text="Продажа и проверка билетов"
                                            FontSize="14"
-                                           Foreground="#444444"
-                                           Margin="0 8 0 0"/>
+                                           Foreground="#444444"/>
+                                <TextBlock Text="{Binding TicketsCount}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#16697A"
+                                           Margin="0 4 0 0"/>
                             </StackPanel>
                         </Border>
 
                         <Border Background="#F2FBFD"
                                 CornerRadius="14"
-                                Padding="20"
-                                Margin="0 0 15 0">
-                            <StackPanel>
-                                <TextBlock Text="Аттракционы"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           Foreground="#16697A"/>
-                                <TextBlock Text="Управление зонами и расписанием"
-                                           FontSize="14"
-                                           Foreground="#444444"
-                                           Margin="0 8 0 0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Background="#F2FBFD"
-                                CornerRadius="14"
-                                Padding="20">
+                                Padding="18"
+                                Margin="0 0 0 12">
                             <StackPanel>
                                 <TextBlock Text="Продажи"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           Foreground="#16697A"/>
-                                <TextBlock Text="Контроль продаж и оплат"
                                            FontSize="14"
-                                           Foreground="#444444"
-                                           Margin="0 8 0 0"/>
+                                           Foreground="#444444"/>
+                                <TextBlock Text="{Binding SalesCount}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           Foreground="#16697A"
+                                           Margin="0 4 0 0"/>
                             </StackPanel>
                         </Border>
 
-                    </UniformGrid>
+                        <Border Background="#E0F5FA"
+                                CornerRadius="14"
+                                Padding="18">
+                            <StackPanel>
+                                <TextBlock Text="Сумма оплат"
+                                           FontSize="14"
+                                           Foreground="#444444"/>
+                                <TextBlock Text="{Binding PaymentsTotalAmount, StringFormat={}{0:N2} руб.}"
+                                           FontSize="26"
+                                           FontWeight="Bold"
+                                           Foreground="#16697A"
+                                           Margin="0 4 0 0"/>
+                            </StackPanel>
+                        </Border>
 
-                </StackPanel>
+                    </StackPanel>
+
+                </Grid>
             </Border>
         </Grid>
     </Grid>

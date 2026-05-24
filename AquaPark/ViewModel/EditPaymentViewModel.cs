@@ -111,7 +111,7 @@ namespace AquaPark.ViewModel
         {
             _paymentId = paymentId;
 
-            SaveCommand = new RelayCommand(Save);
+            SaveCommand = new RelayCommand(Save, _ => RoleAccessService.CanAddOrEdit("Payments"));
             BackCommand = new RelayCommand(Back);
 
             LoadData();
@@ -167,9 +167,9 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (Amount <= 0)
+            if (!ValidationService.ValidatePositiveAmount(Amount, out string errorMessage))
             {
-                ErrorMessage = "Введите корректную сумму";
+                ErrorMessage = errorMessage;
                 return;
             }
 

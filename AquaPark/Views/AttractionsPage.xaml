@@ -29,9 +29,9 @@
                     Command="{Binding BackCommand}"/>
         </DockPanel>
 
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal"
-                    Margin="0 0 0 15">
+        <WrapPanel Grid.Row="1"
+                   Orientation="Horizontal"
+                   Margin="0 0 0 15">
 
             <Button Content="Добавить"
                     Width="110"
@@ -41,7 +41,8 @@
                     Foreground="White"
                     BorderThickness="0"
                     Cursor="Hand"
-                    Command="{Binding AddCommand}"/>
+                    Command="{Binding AddCommand}"
+                    Visibility="{Binding AddButtonVisibility}"/>
 
             <Button Content="Изменить"
                     Width="110"
@@ -51,7 +52,8 @@
                     Foreground="White"
                     BorderThickness="0"
                     Cursor="Hand"
-                    Command="{Binding EditCommand}"/>
+                    Command="{Binding EditCommand}"
+                    Visibility="{Binding EditButtonVisibility}"/>
 
             <Button Content="Удалить"
                     Width="110"
@@ -61,7 +63,8 @@
                     Foreground="White"
                     BorderThickness="0"
                     Cursor="Hand"
-                    Command="{Binding DeleteCommand}"/>
+                    Command="{Binding DeleteCommand}"
+                    Visibility="{Binding DeleteButtonVisibility}"/>
 
             <Button Content="Обновить"
                     Width="110"
@@ -88,7 +91,17 @@
                      BorderBrush="#B8DDE8"
                      BorderThickness="1"
                      Margin="10 0 0 0"/>
-        </StackPanel>
+
+            <Button Content="Очистить"
+                    Width="110"
+                    Height="36"
+                    Margin="10 0 0 0"
+                    Background="#16697A"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    Command="{Binding ClearSearchCommand}"/>
+        </WrapPanel>
 
         <DataGrid Grid.Row="2"
                   ItemsSource="{Binding Attractions}"

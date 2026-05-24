@@ -75,7 +75,7 @@ namespace AquaPark.ViewModel
         {
             _clientId = clientId;
 
-            SaveCommand = new RelayCommand(Save);
+            SaveCommand = new RelayCommand(Save, _ => RoleAccessService.CanAddOrEdit("Clients"));
             BackCommand = new RelayCommand(Back);
 
             LoadClient();
@@ -95,15 +95,15 @@ namespace AquaPark.ViewModel
             BirthDate = client.BirthDate.HasValue
                 ? client.BirthDate.Value.ToDateTime(TimeOnly.MinValue)
                 : null;
-            Phone = client.Phone;
-            Email = client.Email;
+            Phone = client.Phone ?? string.Empty;
+            Email = client.Email ?? string.Empty;
         }
 
         private void Save(object? parameter)
         {
-            if (string.IsNullOrWhiteSpace(FullName))
+            if (!ValidationService.ValidateClient(FullName, BirthDate, Phone, Email, out string errorMessage))
             {
-                ErrorMessage = "Введите ФИО клиента";
+                ErrorMessage = errorMessage;
                 return;
             }
 
@@ -115,12 +115,12 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            client.FullName = FullName;
+            client.FullName = FullName.Trim();
             client.BirthDate = BirthDate.HasValue
                 ? DateOnly.FromDateTime(BirthDate.Value)
                 : null;
-            client.Phone = Phone;
-            client.Email = Email;
+            client.Phone = string.IsNullOrWhiteSpace(Phone) ? null : Phone.Trim();
+            client.Email = string.IsNullOrWhiteSpace(Email) ? null : Email.Trim();
 
             AppData.db.SaveChanges();
 

@@ -111,7 +111,7 @@ namespace AquaPark.ViewModel
         {
             _ticketId = ticketId;
 
-            SaveCommand = new RelayCommand(Save);
+            SaveCommand = new RelayCommand(Save, _ => RoleAccessService.CanAddOrEdit("Tickets"));
             BackCommand = new RelayCommand(Back);
 
             LoadData();
@@ -167,11 +167,13 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (VisitDate == null)
+            if (!ValidationService.ValidateVisitDate(VisitDate, out string errorMessage))
             {
-                ErrorMessage = "Выберите дату посещения";
+                ErrorMessage = errorMessage;
                 return;
             }
+
+            DateTime visitDate = VisitDate.GetValueOrDefault();
 
             if (string.IsNullOrWhiteSpace(SelectedStatus))
             {
@@ -190,7 +192,7 @@ namespace AquaPark.ViewModel
 
             ticket.TicketTypeId = SelectedTicketType.TicketTypeId;
             ticket.ClientId = SelectedClient.ClientId;
-            ticket.VisitDate = DateOnly.FromDateTime(VisitDate.Value);
+            ticket.VisitDate = DateOnly.FromDateTime(visitDate);
             ticket.Status = SelectedStatus;
 
             AppData.db.SaveChanges();

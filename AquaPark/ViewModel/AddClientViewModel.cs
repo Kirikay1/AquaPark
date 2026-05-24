@@ -71,26 +71,26 @@ namespace AquaPark.ViewModel
 
         public AddClientViewModel()
         {
-            SaveCommand = new RelayCommand(Save);
+            SaveCommand = new RelayCommand(Save, _ => RoleAccessService.CanAddOrEdit("Clients"));
             BackCommand = new RelayCommand(Back);
         }
 
         private void Save(object? parameter)
         {
-            if (string.IsNullOrWhiteSpace(FullName))
+            if (!ValidationService.ValidateClient(FullName, BirthDate, Phone, Email, out string errorMessage))
             {
-                ErrorMessage = "Введите ФИО клиента";
+                ErrorMessage = errorMessage;
                 return;
             }
 
             Client client = new Client
             {
-                FullName = FullName,
+                FullName = FullName.Trim(),
                 BirthDate = BirthDate.HasValue
                     ? DateOnly.FromDateTime(BirthDate.Value)
                     : null,
-                Phone = Phone,
-                Email = Email
+                Phone = string.IsNullOrWhiteSpace(Phone) ? null : Phone.Trim(),
+                Email = string.IsNullOrWhiteSpace(Email) ? null : Email.Trim()
             };
 
             AppData.db.Clients.Add(client);

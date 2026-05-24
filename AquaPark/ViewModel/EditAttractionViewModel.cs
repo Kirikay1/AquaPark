@@ -110,7 +110,7 @@ namespace AquaPark.ViewModel
         {
             _attractionId = attractionId;
 
-            SaveCommand = new RelayCommand(Save);
+            SaveCommand = new RelayCommand(Save, _ => RoleAccessService.CanAddOrEdit("Attractions"));
             BackCommand = new RelayCommand(Back);
 
             LoadData();
@@ -136,7 +136,7 @@ namespace AquaPark.ViewModel
             }
 
             AttractionName = attraction.AttractionName;
-            Description = attraction.Description;
+            Description = attraction.Description ?? string.Empty;
             AgeLimit = attraction.AgeLimit;
             HeightLimit = attraction.HeightLimit;
             IsActive = attraction.IsActive;
@@ -147,27 +147,15 @@ namespace AquaPark.ViewModel
 
         private void Save(object? parameter)
         {
-            if (string.IsNullOrWhiteSpace(AttractionName))
+            if (!ValidationService.ValidateAttraction(AttractionName, AgeLimit, HeightLimit, out string errorMessage))
             {
-                ErrorMessage = "Введите название аттракциона";
+                ErrorMessage = errorMessage;
                 return;
             }
 
             if (SelectedZone == null)
             {
                 ErrorMessage = "Выберите зону";
-                return;
-            }
-
-            if (AgeLimit < 0)
-            {
-                ErrorMessage = "Возрастное ограничение не может быть меньше 0";
-                return;
-            }
-
-            if (HeightLimit.HasValue && HeightLimit.Value < 0)
-            {
-                ErrorMessage = "Ограничение по росту не может быть меньше 0";
                 return;
             }
 
@@ -180,9 +168,9 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            attraction.AttractionName = AttractionName;
+            attraction.AttractionName = AttractionName.Trim();
             attraction.ZoneId = SelectedZone.ZoneId;
-            attraction.Description = Description;
+            attraction.Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
             attraction.AgeLimit = AgeLimit;
             attraction.HeightLimit = HeightLimit;
             attraction.IsActive = IsActive;

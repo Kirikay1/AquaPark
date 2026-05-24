@@ -6,7 +6,12 @@
         xmlns:local="clr-namespace:AquaPark"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Аквапарк" Height="550" Width="900">
+        SizeToContent="Manual"
+        MinHeight="650"
+        MinWidth="1100"
+        Height="720"
+        Width="1200"
+        Title="Аквапарк">
     <Grid>
         <Frame x:Name="MainFrame"
                NavigationUIVisibility="Hidden"/>

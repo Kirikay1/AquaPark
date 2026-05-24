@@ -1,7 +1,7 @@
 ﻿using AquaPark.Data;
 using AquaPark.Services;
 using AquaPark.Views;
-using System.Drawing.Interop;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -9,6 +9,12 @@ namespace AquaPark.ViewModel
 {
     public class MenuViewModel : BaseViewModel
     {
+        private const string ClientsSection = "Clients";
+        private const string TicketsSection = "Tickets";
+        private const string AttractionsSection = "Attractions";
+        private const string SalesSection = "Sales";
+        private const string PaymentsSection = "Payments";
+
         private string _currentUserName = string.Empty;
 
         private string _currentUserRole = string.Empty;
@@ -22,6 +28,14 @@ namespace AquaPark.ViewModel
         private Visibility _salesVisibility = Visibility.Visible;
 
         private Visibility _paymentsVisibility = Visibility.Visible;
+
+        private int _clientsCount;
+
+        private int _ticketsCount;
+
+        private int _salesCount;
+
+        private decimal _paymentsTotalAmount;
 
         public string CurrentUserName
         {
@@ -93,6 +107,46 @@ namespace AquaPark.ViewModel
             }
         }
 
+        public int ClientsCount
+        {
+            get => _clientsCount;
+            set
+            {
+                _clientsCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int TicketsCount
+        {
+            get => _ticketsCount;
+            set
+            {
+                _ticketsCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int SalesCount
+        {
+            get => _salesCount;
+            set
+            {
+                _salesCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal PaymentsTotalAmount
+        {
+            get => _paymentsTotalAmount;
+            set
+            {
+                _paymentsTotalAmount = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand ClientsCommand { get; }
         public ICommand TicketsCommand { get; }
         public ICommand AttractionsCommand { get; }
@@ -111,6 +165,7 @@ namespace AquaPark.ViewModel
 
             LoadCurrentUser();
             SetRoleAccess();
+            LoadStatistics();
         }
 
         private void OpenClientsPage(object? parameter)
@@ -188,40 +243,29 @@ namespace AquaPark.ViewModel
 
         private void SetRoleAccess()
         {
-            string roleName = AppData.CurrentUser?.Role?.RoleName ?? "";
+            ClientsVisibility = RoleAccessService.CanOpenMenuSection(ClientsSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            TicketsVisibility = RoleAccessService.CanOpenMenuSection(TicketsSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            AttractionsVisibility = RoleAccessService.CanOpenMenuSection(AttractionsSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            SalesVisibility = RoleAccessService.CanOpenMenuSection(SalesSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            PaymentsVisibility = RoleAccessService.CanOpenMenuSection(PaymentsSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
 
-            ClientsVisibility = Visibility.Collapsed;
-            TicketsVisibility = Visibility.Collapsed;
-            AttractionsVisibility = Visibility.Collapsed;
-            SalesVisibility = Visibility.Collapsed;
-            PaymentsVisibility = Visibility.Collapsed;
-
-            if (roleName == "Администратор")
-            {
-                ClientsVisibility = Visibility.Visible;
-                TicketsVisibility = Visibility.Visible;
-                AttractionsVisibility = Visibility.Visible;
-                SalesVisibility = Visibility.Visible;
-                PaymentsVisibility = Visibility.Visible;
-            }
-            else if (roleName == "Менеджер")
-            {
-                ClientsVisibility = Visibility.Visible;
-                TicketsVisibility = Visibility.Visible;
-                AttractionsVisibility = Visibility.Visible;
-                SalesVisibility = Visibility.Visible;
-                PaymentsVisibility = Visibility.Visible;
-            }
-            else if (roleName == "Кассир")
-            {
-                TicketsVisibility = Visibility.Visible;
-                SalesVisibility = Visibility.Visible;
-                PaymentsVisibility = Visibility.Visible;
-            }
-            else if (roleName == "Сотрудник")
-            {
-                AttractionsVisibility = Visibility.Visible;
-            }
+        private void LoadStatistics()
+        {
+            ClientsCount = AppData.db.Clients.Count();
+            TicketsCount = AppData.db.Tickets.Count();
+            SalesCount = AppData.db.Sales.Count();
+            PaymentsTotalAmount = AppData.db.Payments.Sum(p => (decimal?)p.Amount) ?? 0;
         }
     }
 }

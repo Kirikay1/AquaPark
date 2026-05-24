@@ -12,9 +12,14 @@ namespace AquaPark.ViewModel
 {
     public class ClientsViewModel : BaseViewModel
     {
+        private const string SectionName = "Clients";
+
         private ObservableCollection<Client> _clients;
         private Client _selectedClient;
         private string _searchText = string.Empty;
+        private Visibility _addButtonVisibility = Visibility.Visible;
+        private Visibility _editButtonVisibility = Visibility.Visible;
+        private Visibility _deleteButtonVisibility = Visibility.Visible;
 
         public ObservableCollection<Client> Clients
         {
@@ -47,20 +52,53 @@ namespace AquaPark.ViewModel
             }
         }
 
+        public Visibility AddButtonVisibility
+        {
+            get => _addButtonVisibility;
+            set
+            {
+                _addButtonVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility EditButtonVisibility
+        {
+            get => _editButtonVisibility;
+            set
+            {
+                _editButtonVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility DeleteButtonVisibility
+        {
+            get => _deleteButtonVisibility;
+            set
+            {
+                _deleteButtonVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand RefreshCommand { get; }
         public ICommand BackCommand { get; }
         public ICommand AddCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand EditCommand { get; }
+        public ICommand ClearSearchCommand { get; }
 
         public ClientsViewModel()
         {
             RefreshCommand = new RelayCommand(Refresh);
             BackCommand = new RelayCommand(Back);
-            AddCommand = new RelayCommand(Add);
-            DeleteCommand = new RelayCommand(Delete);
-            EditCommand = new RelayCommand(Edit);
+            AddCommand = new RelayCommand(Add, _ => RoleAccessService.CanAddOrEdit(SectionName));
+            DeleteCommand = new RelayCommand(Delete, _ => RoleAccessService.CanDelete());
+            EditCommand = new RelayCommand(Edit, _ => RoleAccessService.CanAddOrEdit(SectionName));
+            ClearSearchCommand = new RelayCommand(ClearSearch);
 
+            SetRoleAccess();
             LoadClients();
         }
 
@@ -86,6 +124,11 @@ namespace AquaPark.ViewModel
         private void Refresh(object? parameter)
         {
             LoadClients();
+        }
+
+        private void ClearSearch(object? parameter)
+        {
+            SearchText = string.Empty;
         }
 
         private void Back(object? parameter)
@@ -137,8 +180,21 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            AppData.db.Clients.Remove(client);
-            AppData.db.SaveChanges();
+            try
+            {
+                AppData.db.Clients.Remove(client);
+                AppData.db.SaveChanges();
+            }
+            catch (DbUpdateException)
+            {
+                AppData.db.Entry(client).State = EntityState.Unchanged;
+
+                MessageBox.Show("Нельзя удалить клиента, так как у него есть связанные билеты.",
+                                "Удаление",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                return;
+            }
 
             LoadClients();
 
@@ -163,6 +219,13 @@ namespace AquaPark.ViewModel
             {
                 mainWindow.OpenPage(new EditClientPage(SelectedClient.ClientId));
             }
+        }
+
+        private void SetRoleAccess()
+        {
+            AddButtonVisibility = RoleAccessService.AddEditVisibility(SectionName);
+            EditButtonVisibility = RoleAccessService.AddEditVisibility(SectionName);
+            DeleteButtonVisibility = RoleAccessService.DeleteVisibility();
         }
     }
 }

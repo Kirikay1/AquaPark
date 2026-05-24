@@ -106,7 +106,7 @@ namespace AquaPark.ViewModel
 
         public AddAttractionViewModel()
         {
-            SaveCommand = new RelayCommand(Save);
+            SaveCommand = new RelayCommand(Save, _ => RoleAccessService.CanAddOrEdit("Attractions"));
             BackCommand = new RelayCommand(Back);
 
             LoadZones();
@@ -121,9 +121,9 @@ namespace AquaPark.ViewModel
 
         private void Save(object? parameter)
         {
-            if (string.IsNullOrWhiteSpace(AttractionName))
+            if (!ValidationService.ValidateAttraction(AttractionName, AgeLimit, HeightLimit, out string errorMessage))
             {
-                ErrorMessage = "Введите название аттракциона";
+                ErrorMessage = errorMessage;
                 return;
             }
 
@@ -133,23 +133,11 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (AgeLimit < 0)
-            {
-                ErrorMessage = "Возрастное ограничение не может быть меньше 0";
-                return;
-            }
-
-            if (HeightLimit.HasValue && HeightLimit.Value < 0)
-            {
-                ErrorMessage = "Ограничение по росту не может быть меньше 0";
-                return;
-            }
-
             Attraction attraction = new Attraction
             {
-                AttractionName = AttractionName,
+                AttractionName = AttractionName.Trim(),
                 ZoneId = SelectedZone.ZoneId,
-                Description = Description,
+                Description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim(),
                 AgeLimit = AgeLimit,
                 HeightLimit = HeightLimit,
                 IsActive = IsActive
