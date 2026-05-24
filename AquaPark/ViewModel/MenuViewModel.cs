@@ -11,6 +11,7 @@ namespace AquaPark.ViewModel
         public ICommand TicketsCommand { get; }
         public ICommand AttractionsCommand { get; }
         public ICommand SalesCommand { get; }
+        public ICommand PaymentsCommand { get; }
 
         public MenuViewModel()
         {
@@ -18,6 +19,7 @@ namespace AquaPark.ViewModel
             TicketsCommand = new RelayCommand(OpenTicketsPage);
             AttractionsCommand = new RelayCommand(OpenAttractionsPage);
             SalesCommand = new RelayCommand(OpenSalesPage);
+            PaymentsCommand = new RelayCommand(OpenPaymentsPage);
         }
 
         private void OpenClientsPage(object? parameter)
@@ -49,6 +51,14 @@ namespace AquaPark.ViewModel
             if (Application.Current.MainWindow is MainWindow mainWindow)
             {
                 mainWindow.OpenPage(new SalesPage());
+            }
+        }
+
+        private void OpenPaymentsPage(object? parameter)
+        {
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new PaymentsPage());
             }
         }
     }
