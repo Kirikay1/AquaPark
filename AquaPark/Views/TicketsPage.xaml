@@ -1,0 +1,116 @@
+﻿<Page x:Class="AquaPark.Views.TicketsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="TicketsPage">
+
+    <Grid Background="#EAF7FB" Margin="20">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0 0 0 20">
+            <TextBlock Text="Билеты"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="#16697A"
+                       DockPanel.Dock="Left"/>
+
+            <Button Content="Назад"
+                    Width="100"
+                    Height="35"
+                    Background="#16697A"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    HorizontalAlignment="Right"
+                    Command="{Binding BackCommand}"/>
+        </DockPanel>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    Margin="0 0 0 15">
+
+            <Button Content="Добавить"
+                    Width="110"
+                    Height="36"
+                    Margin="0 0 10 0"
+                    Background="#16697A"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    Command="{Binding AddCommand}"/>
+
+            <Button Content="Изменить"
+                    Width="110"
+                    Height="36"
+                    Margin="0 0 10 0"
+                    Background="#16697A"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    Command="{Binding EditCommand}"/>
+
+            <Button Content="Удалить"
+                    Width="110"
+                    Height="36"
+                    Margin="0 0 10 0"
+                    Background="#D62828"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    Command="{Binding DeleteCommand}"/>
+
+            <Button Content="Обновить"
+                    Width="110"
+                    Height="36"
+                    Margin="0 0 10 0"
+                    Background="#16697A"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    Command="{Binding RefreshCommand}"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Tickets}"
+                  SelectedItem="{Binding SelectedTicket}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  Background="White"
+                  BorderBrush="#B8DDE8"
+                  BorderThickness="1"
+                  FontSize="14">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID"
+                                    Binding="{Binding TicketId}"
+                                    Width="60"/>
+
+                <DataGridTextColumn Header="Тип билета"
+                                    Binding="{Binding TicketType.TicketName}"
+                                    Width="160"/>
+
+                <DataGridTextColumn Header="Клиент"
+                                    Binding="{Binding Client.FullName}"
+                                    Width="*"/>
+
+                <DataGridTextColumn Header="Дата покупки"
+                                    Binding="{Binding PurchaseDate, StringFormat=dd.MM.yyyy HH:mm}"
+                                    Width="160"/>
+
+                <DataGridTextColumn Header="Дата посещения"
+                                    Binding="{Binding VisitDate, StringFormat=dd.MM.yyyy}"
+                                    Width="150"/>
+
+                <DataGridTextColumn Header="Статус"
+                                    Binding="{Binding Status}"
+                                    Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </Grid>
+</Page>

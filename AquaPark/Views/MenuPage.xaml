@@ -40,7 +40,8 @@
                         Background="White"
                         Foreground="#16697A"
                         BorderThickness="0"
-                        Cursor="Hand"/>
+                        Cursor="Hand"
+                        Command="{Binding TicketsCommand}"/>
 
                 <Button Content="Аттракционы"
                         Height="42"
