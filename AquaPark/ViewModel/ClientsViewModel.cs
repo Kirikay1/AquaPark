@@ -14,6 +14,7 @@ namespace AquaPark.ViewModel
     {
         private ObservableCollection<Client> _clients;
         private Client _selectedClient;
+        private string _searchText = string.Empty;
 
         public ObservableCollection<Client> Clients
         {
@@ -32,6 +33,17 @@ namespace AquaPark.ViewModel
             {
                 _selectedClient = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                LoadClients();
             }
         }
 
@@ -54,8 +66,20 @@ namespace AquaPark.ViewModel
 
         private void LoadClients()
         {
+            var query = AppData.db.Clients
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(c =>
+                    c.FullName.Contains(SearchText) ||
+                    (c.Phone != null && c.Phone.Contains(SearchText)) ||
+                    (c.Email != null && c.Email.Contains(SearchText)));
+            }
+
             Clients = new ObservableCollection<Client>(
-                AppData.db.Clients.AsNoTracking().ToList()
+                query.ToList()
             );
         }
 
