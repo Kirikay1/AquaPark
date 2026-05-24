@@ -17,6 +17,9 @@
     <Compile Update="Views\EditClientPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\EditTicketPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\MenuPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -82,10 +82,10 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            MessageBox.Show("Изменение билета сделаем следующим шагом",
-                            "Билеты",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new EditTicketPage(SelectedTicket.TicketId));
+            }
         }
 
         private void Delete(object? parameter)
