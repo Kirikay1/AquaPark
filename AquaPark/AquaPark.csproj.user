@@ -5,6 +5,9 @@
     <Compile Update="Views\AddClientPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\AddTicketPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\AuthorizationPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

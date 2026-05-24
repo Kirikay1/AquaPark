@@ -65,10 +65,10 @@ namespace AquaPark.ViewModel
 
         private void Add(object? parameter)
         {
-            MessageBox.Show("Добавление билета сделаем следующим шагом",
-                            "Билеты",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new AddTicketPage());
+            }
         }
 
         private void Edit(object? parameter)
