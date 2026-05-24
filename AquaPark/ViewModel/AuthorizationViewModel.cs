@@ -1,5 +1,6 @@
 ﻿using AquaPark.Data;
 using AquaPark.Services;
+using AquaPark.Views;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -73,7 +74,10 @@ namespace AquaPark.ViewModel
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);
 
-            // Потом здесь будет переход на главную страницу
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.OpenPage(new MenuPage());
+            }
         }
     }
 }

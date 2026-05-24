@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,23 +11,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace AquaPark
+namespace AquaPark.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Логика взаимодействия для MenuPage.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MenuPage : Page
     {
-        public MainWindow()
+        public MenuPage()
         {
             InitializeComponent();
-
-            MainFrame.Navigate(new Views.AuthorizationPage());
-        }
-
-        public void OpenPage(Page page)
-        {
-            MainFrame.Navigate(page);
         }
     }
 }
