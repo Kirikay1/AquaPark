@@ -1,6 +1,7 @@
 ﻿using AquaPark.Data;
 using AquaPark.Services;
 using AquaPark.Views;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -57,6 +58,7 @@ namespace AquaPark.ViewModel
             }
 
             var user = AppData.db.Users
+                .Include(u => u.Role)
                 .FirstOrDefault(u => u.Login == Login
                                   && u.Password == password
                                   && u.IsActive == true);
@@ -66,6 +68,8 @@ namespace AquaPark.ViewModel
                 ErrorMessage = "Неверный логин или пароль";
                 return;
             }
+
+            AppData.CurrentUser = user;
 
             ErrorMessage = string.Empty;
 

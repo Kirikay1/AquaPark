@@ -1,4 +1,5 @@
-﻿using AquaPark.Services;
+﻿using AquaPark.Data;
+using AquaPark.Services;
 using AquaPark.Views;
 using System.Drawing.Interop;
 using System.Windows;
@@ -8,6 +9,30 @@ namespace AquaPark.ViewModel
 {
     public class MenuViewModel : BaseViewModel
     {
+        private string _currentUserName = string.Empty;
+
+        private string _currentUserRole = string.Empty;
+
+        public string CurrentUserName
+        {
+            get => _currentUserName;
+            set
+            {
+                _currentUserName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string CurrentUserRole
+        {
+            get => _currentUserRole;
+            set
+            {
+                _currentUserRole = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand ClientsCommand { get; }
         public ICommand TicketsCommand { get; }
         public ICommand AttractionsCommand { get; }
@@ -23,6 +48,8 @@ namespace AquaPark.ViewModel
             SalesCommand = new RelayCommand(OpenSalesPage);
             PaymentsCommand = new RelayCommand(OpenPaymentsPage);
             LogoutCommand = new RelayCommand(Logout);
+
+            LoadCurrentUser();
         }
 
         private void OpenClientsPage(object? parameter)
@@ -77,10 +104,25 @@ namespace AquaPark.ViewModel
                 return;
             }
 
+            AppData.CurrentUser = null;
+
             if (Application.Current.MainWindow is MainWindow mainWindow)
             {
                 mainWindow.OpenPage(new AuthorizationPage());
             }
+        }
+
+        private void LoadCurrentUser()
+        {
+            if (AppData.CurrentUser == null)
+            {
+                CurrentUserName = "Пользователь не определен";
+                CurrentUserRole = "";
+                return;
+            }
+
+            CurrentUserName = AppData.CurrentUser.FullName;
+            CurrentUserRole = AppData.CurrentUser.Role?.RoleName ?? "Роль не указана";
         }
     }
 }
