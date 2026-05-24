@@ -15,6 +15,8 @@ namespace AquaPark.ViewModel
         private ObservableCollection<Payment> _payments = null!;
         private Payment _selectedPayment = null!;
 
+        private string _searchText = string.Empty;
+
         public ObservableCollection<Payment> Payments
         {
             get => _payments;
@@ -32,6 +34,17 @@ namespace AquaPark.ViewModel
             {
                 _selectedPayment = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                LoadPayments();
             }
         }
 
@@ -54,13 +67,25 @@ namespace AquaPark.ViewModel
 
         private void LoadPayments()
         {
+            var query = AppData.db.Payments
+                .Include(p => p.Sale)
+                    .ThenInclude(s => s.Ticket)
+                        .ThenInclude(t => t.Client)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                query = query.Where(p =>
+                    p.Sale.SaleId.ToString().Contains(SearchText) ||
+                    p.Sale.Ticket.Client.FullName.Contains(SearchText) ||
+                    p.PaymentMethod.Contains(SearchText) ||
+                    p.PaymentStatus.Contains(SearchText) ||
+                    p.Amount.ToString().Contains(SearchText));
+            }
+
             Payments = new ObservableCollection<Payment>(
-                AppData.db.Payments
-                    .Include(p => p.Sale)
-                        .ThenInclude(s => s.Ticket)
-                            .ThenInclude(t => t.Client)
-                    .AsNoTracking()
-                    .ToList()
+                query.ToList()
             );
         }
 
