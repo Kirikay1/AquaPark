@@ -10,14 +10,18 @@ using System.Windows.Input;
 
 namespace AquaPark.ViewModel
 {
-    public class AttractionsViewModel : BaseViewModel
+    public class AttractionsViewModel : PagedTableViewModel
     {
         private const string SectionName = "Attractions";
 
         private ObservableCollection<Attraction> _attractions = null!;
+        private ObservableCollection<string> _zones = null!;
+        private ObservableCollection<string> _activeFilters = null!;
         private Attraction _selectedAttraction = null!;
 
         private string _searchText = string.Empty;
+        private string _selectedZone = "Все";
+        private string _selectedActiveFilter = "Все";
         private Visibility _addButtonVisibility = Visibility.Visible;
         private Visibility _editButtonVisibility = Visibility.Visible;
         private Visibility _deleteButtonVisibility = Visibility.Visible;
@@ -28,6 +32,26 @@ namespace AquaPark.ViewModel
             set
             {
                 _attractions = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> Zones
+        {
+            get => _zones;
+            set
+            {
+                _zones = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> ActiveFilters
+        {
+            get => _activeFilters;
+            set
+            {
+                _activeFilters = value;
                 OnPropertyChanged();
             }
         }
@@ -49,6 +73,31 @@ namespace AquaPark.ViewModel
             {
                 _searchText = value;
                 OnPropertyChanged();
+                ResetPage();
+                LoadAttractions();
+            }
+        }
+
+        public string SelectedZone
+        {
+            get => _selectedZone;
+            set
+            {
+                _selectedZone = value;
+                OnPropertyChanged();
+                ResetPage();
+                LoadAttractions();
+            }
+        }
+
+        public string SelectedActiveFilter
+        {
+            get => _selectedActiveFilter;
+            set
+            {
+                _selectedActiveFilter = value;
+                OnPropertyChanged();
+                ResetPage();
                 LoadAttractions();
             }
         }
@@ -99,7 +148,27 @@ namespace AquaPark.ViewModel
             BackCommand = new RelayCommand(Back);
             ClearSearchCommand = new RelayCommand(ClearSearch);
 
+            LoadFilters();
             SetRoleAccess();
+            LoadAttractions();
+        }
+
+        private void LoadFilters()
+        {
+            Zones = new ObservableCollection<string>(
+                new[] { "Все" }.Concat(AppData.db.Zones.Select(z => z.ZoneName).ToList())
+            );
+
+            ActiveFilters = new ObservableCollection<string>
+            {
+                "Все",
+                "Активные",
+                "Неактивные"
+            };
+        }
+
+        protected override void LoadPage()
+        {
             LoadAttractions();
         }
 
@@ -112,23 +181,36 @@ namespace AquaPark.ViewModel
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
+                string searchText = SearchText.ToLower();
+
                 query = query.Where(a =>
-                    a.AttractionName.Contains(SearchText) ||
-                    (a.Description != null && a.Description.Contains(SearchText)) ||
-                    a.Zone.ZoneName.Contains(SearchText));
+                    a.AttractionName.ToLower().Contains(searchText) ||
+                    (a.Description != null && a.Description.ToLower().Contains(searchText)) ||
+                    a.Zone.ZoneName.ToLower().Contains(searchText));
             }
 
-            Attractions = new ObservableCollection<Attraction>(
-                query.ToList()
-            );
+            if (!string.IsNullOrWhiteSpace(SelectedZone) && SelectedZone != "Все")
+            {
+                query = query.Where(a => a.Zone.ZoneName == SelectedZone);
+            }
+
+            if (SelectedActiveFilter == "Активные")
+            {
+                query = query.Where(a => a.IsActive);
+            }
+            else if (SelectedActiveFilter == "Неактивные")
+            {
+                query = query.Where(a => !a.IsActive);
+            }
+
+            query = ApplyPaging(query.OrderBy(a => a.AttractionId));
+
+            Attractions = new ObservableCollection<Attraction>(query.ToList());
         }
 
         private void Add(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AddAttractionPage());
-            }
+            NavigationService.Navigate(new AddAttractionPage());
         }
 
         private void Edit(object? parameter)
@@ -142,10 +224,7 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new EditAttractionPage(SelectedAttraction.AttractionId));
-            }
+            NavigationService.Navigate(new EditAttractionPage(SelectedAttraction.AttractionId));
         }
 
         private void Delete(object? parameter)
@@ -185,6 +264,7 @@ namespace AquaPark.ViewModel
             {
                 AppData.db.Attractions.Remove(attraction);
                 AppData.db.SaveChanges();
+                AuditService.Log("Удаление", "Аттракционы", attraction.AttractionId, attraction.AttractionName);
             }
             catch (DbUpdateException)
             {
@@ -213,14 +293,13 @@ namespace AquaPark.ViewModel
         private void ClearSearch(object? parameter)
         {
             SearchText = string.Empty;
+            SelectedZone = "Все";
+            SelectedActiveFilter = "Все";
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new MenuPage());
-            }
+            NavigationService.Navigate(new MenuPage());
         }
 
         private void SetRoleAccess()

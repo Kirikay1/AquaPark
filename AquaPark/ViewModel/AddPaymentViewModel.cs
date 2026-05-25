@@ -117,6 +117,7 @@ namespace AquaPark.ViewModel
             BackCommand = new RelayCommand(Back);
 
             LoadData();
+            EnableUnsavedChangesTracking();
         }
 
         private void LoadData()
@@ -160,6 +161,18 @@ namespace AquaPark.ViewModel
                 return;
             }
 
+            if (DuplicateCheckService.SaleIsFullyPaid(SelectedSale.SaleId))
+            {
+                ErrorMessage = "Выбранная продажа уже полностью оплачена";
+                return;
+            }
+
+            if (DuplicateCheckService.PaymentExceedsSaleAmount(SelectedSale.SaleId, Amount))
+            {
+                ErrorMessage = "Сумма оплат не должна превышать сумму продажи";
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(SelectedPaymentMethod))
             {
                 ErrorMessage = "Выберите способ оплаты";
@@ -178,26 +191,27 @@ namespace AquaPark.ViewModel
                 PaymentDate = DateTime.Now,
                 Amount = Amount,
                 PaymentMethod = SelectedPaymentMethod,
-                PaymentStatus = SelectedPaymentStatus
+                PaymentStatus = SelectedPaymentStatus == "Отменено"
+                    ? "Отменено"
+                    : StatusAutomationService.GetSalePaymentStatus(SelectedSale.SaleId, SelectedSale.TotalAmount, null, Amount)
             };
 
             AppData.db.Payments.Add(payment);
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Оплата успешно добавлена"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Оплата успешно добавлена",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            StatusAutomationService.UpdatePaymentStatuses();
+            AuditService.Log("Добавление", "Оплаты", payment.PaymentId, $"Сумма: {payment.Amount:N2}");
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new PaymentsPage());
-            }
+            NavigationService.Navigate(new PaymentsPage());
         }
     }
 }

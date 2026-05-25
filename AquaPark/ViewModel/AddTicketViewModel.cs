@@ -102,6 +102,7 @@ namespace AquaPark.ViewModel
 
             LoadData();
             VisitDate = DateTime.Today;
+            EnableUnsavedChangesTracking();
         }
 
         private void LoadData()
@@ -154,22 +155,20 @@ namespace AquaPark.ViewModel
             };
 
             AppData.db.Tickets.Add(ticket);
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Билет успешно добавлен"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Билет успешно добавлен",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            AuditService.Log("Добавление", "Билеты", ticket.TicketId, ticket.Status);
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new TicketsPage());
-            }
+            NavigationService.Navigate(new TicketsPage());
         }
     }
 }

@@ -70,6 +70,7 @@ namespace AquaPark.ViewModel
             }
 
             AppData.CurrentUser = user;
+            AuditService.Log("Вход", "Авторизация", user.UserId, "Успешный вход");
 
             ErrorMessage = string.Empty;
 
@@ -78,10 +79,7 @@ namespace AquaPark.ViewModel
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new MenuPage());
-            }
+            NavigationService.Navigate(new MenuPage());
         }
     }
 }

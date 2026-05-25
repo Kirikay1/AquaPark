@@ -1,6 +1,8 @@
 ﻿using AquaPark.Data;
 using AquaPark.Services;
 using AquaPark.Views;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -14,6 +16,10 @@ namespace AquaPark.ViewModel
         private const string AttractionsSection = "Attractions";
         private const string SalesSection = "Sales";
         private const string PaymentsSection = "Payments";
+        private const string SchedulesSection = "Schedules";
+        private const string ReportsSection = "Reports";
+        private const string UsersSection = "Users";
+        private const string LogsSection = "Logs";
 
         private string _currentUserName = string.Empty;
 
@@ -29,6 +35,12 @@ namespace AquaPark.ViewModel
 
         private Visibility _paymentsVisibility = Visibility.Visible;
 
+        private Visibility _schedulesVisibility = Visibility.Visible;
+
+        private Visibility _reportsVisibility = Visibility.Visible;
+        private Visibility _usersVisibility = Visibility.Visible;
+        private Visibility _logsVisibility = Visibility.Visible;
+
         private int _clientsCount;
 
         private int _ticketsCount;
@@ -36,6 +48,16 @@ namespace AquaPark.ViewModel
         private int _salesCount;
 
         private decimal _paymentsTotalAmount;
+
+        private int _todaySalesCount;
+
+        private decimal _todayPaymentsTotalAmount;
+
+        private int _activeTicketsCount;
+
+        private int _upcomingSchedulesCount;
+
+        private int _unpaidSalesCount;
 
         public string CurrentUserName
         {
@@ -107,6 +129,46 @@ namespace AquaPark.ViewModel
             }
         }
 
+        public Visibility SchedulesVisibility
+        {
+            get => _schedulesVisibility;
+            set
+            {
+                _schedulesVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility ReportsVisibility
+        {
+            get => _reportsVisibility;
+            set
+            {
+                _reportsVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility UsersVisibility
+        {
+            get => _usersVisibility;
+            set
+            {
+                _usersVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Visibility LogsVisibility
+        {
+            get => _logsVisibility;
+            set
+            {
+                _logsVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+
         public int ClientsCount
         {
             get => _clientsCount;
@@ -147,11 +209,65 @@ namespace AquaPark.ViewModel
             }
         }
 
+        public int TodaySalesCount
+        {
+            get => _todaySalesCount;
+            set
+            {
+                _todaySalesCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal TodayPaymentsTotalAmount
+        {
+            get => _todayPaymentsTotalAmount;
+            set
+            {
+                _todayPaymentsTotalAmount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int ActiveTicketsCount
+        {
+            get => _activeTicketsCount;
+            set
+            {
+                _activeTicketsCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int UpcomingSchedulesCount
+        {
+            get => _upcomingSchedulesCount;
+            set
+            {
+                _upcomingSchedulesCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int UnpaidSalesCount
+        {
+            get => _unpaidSalesCount;
+            set
+            {
+                _unpaidSalesCount = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand ClientsCommand { get; }
         public ICommand TicketsCommand { get; }
         public ICommand AttractionsCommand { get; }
         public ICommand SalesCommand { get; }
         public ICommand PaymentsCommand { get; }
+        public ICommand SchedulesCommand { get; }
+        public ICommand ReportsCommand { get; }
+        public ICommand UsersCommand { get; }
+        public ICommand LogsCommand { get; }
         public ICommand LogoutCommand { get; }
 
         public MenuViewModel()
@@ -161,8 +277,13 @@ namespace AquaPark.ViewModel
             AttractionsCommand = new RelayCommand(OpenAttractionsPage);
             SalesCommand = new RelayCommand(OpenSalesPage);
             PaymentsCommand = new RelayCommand(OpenPaymentsPage);
+            SchedulesCommand = new RelayCommand(OpenSchedulesPage);
+            ReportsCommand = new RelayCommand(OpenReportsPage);
+            UsersCommand = new RelayCommand(_ => NavigationService.Navigate(new UsersPage()));
+            LogsCommand = new RelayCommand(_ => NavigationService.Navigate(new ActionLogsPage()));
             LogoutCommand = new RelayCommand(Logout);
 
+            StatusAutomationService.UpdateOperationalStatuses();
             LoadCurrentUser();
             SetRoleAccess();
             LoadStatistics();
@@ -170,42 +291,37 @@ namespace AquaPark.ViewModel
 
         private void OpenClientsPage(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new ClientsPage());
-            }
+            NavigationService.Navigate(new ClientsPage());
         }
 
         private void OpenTicketsPage(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new TicketsPage());
-            }
+            NavigationService.Navigate(new TicketsPage());
         }
 
         private void OpenAttractionsPage(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AttractionsPage());
-            }
+            NavigationService.Navigate(new AttractionsPage());
         }
 
         private void OpenSalesPage(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new SalesPage());
-            }
+            NavigationService.Navigate(new SalesPage());
         }
 
         private void OpenPaymentsPage(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new PaymentsPage());
-            }
+            NavigationService.Navigate(new PaymentsPage());
+        }
+
+        private void OpenSchedulesPage(object? parameter)
+        {
+            NavigationService.Navigate(new AttractionSchedulesPage());
+        }
+
+        private void OpenReportsPage(object? parameter)
+        {
+            NavigationService.Navigate(new ReportsPage());
         }
 
         private void Logout(object? parameter)
@@ -220,12 +336,10 @@ namespace AquaPark.ViewModel
                 return;
             }
 
+            AuditService.Log("Выход", "Авторизация", null, "Выход из аккаунта");
             AppData.CurrentUser = null;
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AuthorizationPage());
-            }
+            NavigationService.Navigate(new AuthorizationPage());
         }
 
         private void LoadCurrentUser()
@@ -258,14 +372,40 @@ namespace AquaPark.ViewModel
             PaymentsVisibility = RoleAccessService.CanOpenMenuSection(PaymentsSection)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+            SchedulesVisibility = RoleAccessService.CanOpenMenuSection(SchedulesSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            ReportsVisibility = RoleAccessService.CanOpenMenuSection(ReportsSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            UsersVisibility = RoleAccessService.CanOpenMenuSection(UsersSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            LogsVisibility = RoleAccessService.CanOpenMenuSection(LogsSection)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private void LoadStatistics()
         {
+            DateTime today = DateTime.Today;
+            DateTime tomorrow = today.AddDays(1);
+            DateOnly todayDate = DateOnly.FromDateTime(today);
+
             ClientsCount = AppData.db.Clients.Count();
             TicketsCount = AppData.db.Tickets.Count();
             SalesCount = AppData.db.Sales.Count();
             PaymentsTotalAmount = AppData.db.Payments.Sum(p => (decimal?)p.Amount) ?? 0;
+            TodaySalesCount = AppData.db.Sales.Count(s => s.SaleDate >= today && s.SaleDate < tomorrow);
+            TodayPaymentsTotalAmount = AppData.db.Payments
+                .Where(p => p.PaymentDate >= today && p.PaymentDate < tomorrow)
+                .Sum(p => (decimal?)p.Amount) ?? 0;
+            ActiveTicketsCount = AppData.db.Tickets.Count(t => t.Status == "Активен");
+            UpcomingSchedulesCount = AppData.db.AttractionSchedules.Count(s => s.WorkDate >= todayDate && s.Status == "Работает");
+            UnpaidSalesCount = AppData.db.Sales
+                .Include(s => s.Payments)
+                .AsEnumerable()
+                .Count(s => s.Payments.Sum(p => p.Amount) < s.TotalAmount);
         }
     }
 }

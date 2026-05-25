@@ -3,6 +3,7 @@ using AquaPark.Models;
 using AquaPark.Services;
 using AquaPark.Views;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -10,7 +11,7 @@ using System.Windows.Input;
 
 namespace AquaPark.ViewModel
 {
-    public class SalesViewModel : BaseViewModel
+    public class SalesViewModel : PagedTableViewModel
     {
         private const string SectionName = "Sales";
 
@@ -18,6 +19,8 @@ namespace AquaPark.ViewModel
         private Sale _selectedSale = null!;
 
         private string _searchText = string.Empty;
+        private DateTime? _dateFrom;
+        private DateTime? _dateTo;
         private Visibility _addButtonVisibility = Visibility.Visible;
         private Visibility _editButtonVisibility = Visibility.Visible;
         private Visibility _deleteButtonVisibility = Visibility.Visible;
@@ -49,6 +52,31 @@ namespace AquaPark.ViewModel
             {
                 _searchText = value;
                 OnPropertyChanged();
+                ResetPage();
+                LoadSales();
+            }
+        }
+
+        public DateTime? DateFrom
+        {
+            get => _dateFrom;
+            set
+            {
+                _dateFrom = value;
+                OnPropertyChanged();
+                ResetPage();
+                LoadSales();
+            }
+        }
+
+        public DateTime? DateTo
+        {
+            get => _dateTo;
+            set
+            {
+                _dateTo = value;
+                OnPropertyChanged();
+                ResetPage();
                 LoadSales();
             }
         }
@@ -103,6 +131,11 @@ namespace AquaPark.ViewModel
             LoadSales();
         }
 
+        protected override void LoadPage()
+        {
+            LoadSales();
+        }
+
         private void LoadSales()
         {
             var query = AppData.db.Sales
@@ -115,24 +148,34 @@ namespace AquaPark.ViewModel
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
+                string searchText = SearchText.ToLower();
+
                 query = query.Where(s =>
-                    s.Ticket.TicketId.ToString().Contains(SearchText) ||
-                    s.Ticket.Client.FullName.Contains(SearchText) ||
-                    s.Employee.User.FullName.Contains(SearchText) ||
-                    s.TotalAmount.ToString().Contains(SearchText));
+                    s.Ticket.TicketId.ToString().Contains(searchText) ||
+                    (s.Ticket.Client != null && s.Ticket.Client.FullName.ToLower().Contains(searchText)) ||
+                    s.Employee.User.FullName.ToLower().Contains(searchText) ||
+                    s.TotalAmount.ToString().Contains(searchText));
             }
 
-            Sales = new ObservableCollection<Sale>(
-                query.ToList()
-            );
+            if (DateFrom.HasValue)
+            {
+                query = query.Where(s => s.SaleDate >= DateFrom.Value.Date);
+            }
+
+            if (DateTo.HasValue)
+            {
+                DateTime to = DateTo.Value.Date.AddDays(1);
+                query = query.Where(s => s.SaleDate < to);
+            }
+
+            query = ApplyPaging(query.OrderByDescending(s => s.SaleDate));
+
+            Sales = new ObservableCollection<Sale>(query.ToList());
         }
 
         private void Add(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AddSalePage());
-            }
+            NavigationService.Navigate(new AddSalePage());
         }
 
         private void Edit(object? parameter)
@@ -146,10 +189,7 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new EditSalePage(SelectedSale.SaleId));
-            }
+            NavigationService.Navigate(new EditSalePage(SelectedSale.SaleId));
         }
 
         private void Delete(object? parameter)
@@ -188,6 +228,7 @@ namespace AquaPark.ViewModel
             {
                 AppData.db.Sales.Remove(sale);
                 AppData.db.SaveChanges();
+                AuditService.Log("Удаление", "Продажи", sale.SaleId, $"Сумма: {sale.TotalAmount:N2}");
             }
             catch (DbUpdateException)
             {
@@ -216,14 +257,13 @@ namespace AquaPark.ViewModel
         private void ClearSearch(object? parameter)
         {
             SearchText = string.Empty;
+            DateFrom = null;
+            DateTo = null;
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new MenuPage());
-            }
+            NavigationService.Navigate(new MenuPage());
         }
 
         private void SetRoleAccess()

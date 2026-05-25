@@ -110,6 +110,7 @@ namespace AquaPark.ViewModel
             BackCommand = new RelayCommand(Back);
 
             LoadZones();
+            EnableUnsavedChangesTracking();
         }
 
         private void LoadZones()
@@ -144,22 +145,20 @@ namespace AquaPark.ViewModel
             };
 
             AppData.db.Attractions.Add(attraction);
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Аттракцион успешно добавлен"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Аттракцион успешно добавлен",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            AuditService.Log("Добавление", "Аттракционы", attraction.AttractionId, attraction.AttractionName);
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AttractionsPage());
-            }
+            NavigationService.Navigate(new AttractionsPage());
         }
     }
 }

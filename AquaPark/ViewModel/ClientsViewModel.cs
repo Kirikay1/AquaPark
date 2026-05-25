@@ -10,12 +10,12 @@ using System.Windows.Input;
 
 namespace AquaPark.ViewModel
 {
-    public class ClientsViewModel : BaseViewModel
+    public class ClientsViewModel : PagedTableViewModel
     {
         private const string SectionName = "Clients";
 
-        private ObservableCollection<Client> _clients;
-        private Client _selectedClient;
+        private ObservableCollection<Client> _clients = null!;
+        private Client _selectedClient = null!;
         private string _searchText = string.Empty;
         private Visibility _addButtonVisibility = Visibility.Visible;
         private Visibility _editButtonVisibility = Visibility.Visible;
@@ -48,6 +48,7 @@ namespace AquaPark.ViewModel
             {
                 _searchText = value;
                 OnPropertyChanged();
+                ResetPage();
                 LoadClients();
             }
         }
@@ -102,6 +103,11 @@ namespace AquaPark.ViewModel
             LoadClients();
         }
 
+        protected override void LoadPage()
+        {
+            LoadClients();
+        }
+
         private void LoadClients()
         {
             var query = AppData.db.Clients
@@ -110,15 +116,17 @@ namespace AquaPark.ViewModel
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
+                string searchText = SearchText.ToLower();
+
                 query = query.Where(c =>
-                    c.FullName.Contains(SearchText) ||
-                    (c.Phone != null && c.Phone.Contains(SearchText)) ||
-                    (c.Email != null && c.Email.Contains(SearchText)));
+                    c.FullName.ToLower().Contains(searchText) ||
+                    (c.Phone != null && c.Phone.ToLower().Contains(searchText)) ||
+                    (c.Email != null && c.Email.ToLower().Contains(searchText)));
             }
 
-            Clients = new ObservableCollection<Client>(
-                query.ToList()
-            );
+            query = ApplyPaging(query.OrderBy(c => c.ClientId));
+
+            Clients = new ObservableCollection<Client>(query.ToList());
         }
 
         private void Refresh(object? parameter)
@@ -133,18 +141,12 @@ namespace AquaPark.ViewModel
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new MenuPage());
-            }
+            NavigationService.Navigate(new MenuPage());
         }
 
         private void Add(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AddClientPage());
-            }
+            NavigationService.Navigate(new AddClientPage());
         }
 
         private void Delete(object? parameter)
@@ -184,6 +186,7 @@ namespace AquaPark.ViewModel
             {
                 AppData.db.Clients.Remove(client);
                 AppData.db.SaveChanges();
+                AuditService.Log("Удаление", "Клиенты", client.ClientId, client.FullName);
             }
             catch (DbUpdateException)
             {
@@ -215,10 +218,7 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new EditClientPage(SelectedClient.ClientId));
-            }
+            NavigationService.Navigate(new EditClientPage(SelectedClient.ClientId));
         }
 
         private void SetRoleAccess()

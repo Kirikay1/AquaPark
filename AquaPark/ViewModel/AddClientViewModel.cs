@@ -73,6 +73,7 @@ namespace AquaPark.ViewModel
         {
             SaveCommand = new RelayCommand(Save, _ => RoleAccessService.CanAddOrEdit("Clients"));
             BackCommand = new RelayCommand(Back);
+            EnableUnsavedChangesTracking();
         }
 
         private void Save(object? parameter)
@@ -80,6 +81,18 @@ namespace AquaPark.ViewModel
             if (!ValidationService.ValidateClient(FullName, BirthDate, Phone, Email, out string errorMessage))
             {
                 ErrorMessage = errorMessage;
+                return;
+            }
+
+            if (DuplicateCheckService.ClientPhoneExists(Phone))
+            {
+                ErrorMessage = "Клиент с таким телефоном уже существует";
+                return;
+            }
+
+            if (DuplicateCheckService.ClientEmailExists(Email))
+            {
+                ErrorMessage = "Клиент с таким email уже существует";
                 return;
             }
 
@@ -94,22 +107,20 @@ namespace AquaPark.ViewModel
             };
 
             AppData.db.Clients.Add(client);
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Клиент успешно добавлен"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Клиент успешно добавлен",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            AuditService.Log("Добавление", "Клиенты", client.ClientId, client.FullName);
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new ClientsPage());
-            }
+            NavigationService.Navigate(new ClientsPage());
         }
     }
 }

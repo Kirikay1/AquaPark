@@ -79,6 +79,7 @@ namespace AquaPark.ViewModel
             BackCommand = new RelayCommand(Back);
 
             LoadClient();
+            EnableUnsavedChangesTracking();
         }
 
         private void LoadClient()
@@ -107,6 +108,18 @@ namespace AquaPark.ViewModel
                 return;
             }
 
+            if (DuplicateCheckService.ClientPhoneExists(Phone, _clientId))
+            {
+                ErrorMessage = "Клиент с таким телефоном уже существует";
+                return;
+            }
+
+            if (DuplicateCheckService.ClientEmailExists(Email, _clientId))
+            {
+                ErrorMessage = "Клиент с таким email уже существует";
+                return;
+            }
+
             var client = AppData.db.Clients.FirstOrDefault(c => c.ClientId == _clientId);
 
             if (client == null)
@@ -122,22 +135,20 @@ namespace AquaPark.ViewModel
             client.Phone = string.IsNullOrWhiteSpace(Phone) ? null : Phone.Trim();
             client.Email = string.IsNullOrWhiteSpace(Email) ? null : Email.Trim();
 
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Данные клиента успешно изменены"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Данные клиента успешно изменены",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            AuditService.Log("Изменение", "Клиенты", client.ClientId, client.FullName);
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new ClientsPage());
-            }
+            NavigationService.Navigate(new ClientsPage());
         }
     }
 }

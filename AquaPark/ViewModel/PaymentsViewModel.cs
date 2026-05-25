@@ -3,6 +3,7 @@ using AquaPark.Models;
 using AquaPark.Services;
 using AquaPark.Views;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -10,14 +11,18 @@ using System.Windows.Input;
 
 namespace AquaPark.ViewModel
 {
-    public class PaymentsViewModel : BaseViewModel
+    public class PaymentsViewModel : PagedTableViewModel
     {
         private const string SectionName = "Payments";
 
         private ObservableCollection<Payment> _payments = null!;
+        private ObservableCollection<string> _statuses = null!;
         private Payment _selectedPayment = null!;
 
         private string _searchText = string.Empty;
+        private string _selectedStatus = "Все";
+        private DateTime? _dateFrom;
+        private DateTime? _dateTo;
         private Visibility _addButtonVisibility = Visibility.Visible;
         private Visibility _editButtonVisibility = Visibility.Visible;
         private Visibility _deleteButtonVisibility = Visibility.Visible;
@@ -28,6 +33,16 @@ namespace AquaPark.ViewModel
             set
             {
                 _payments = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> Statuses
+        {
+            get => _statuses;
+            set
+            {
+                _statuses = value;
                 OnPropertyChanged();
             }
         }
@@ -49,6 +64,43 @@ namespace AquaPark.ViewModel
             {
                 _searchText = value;
                 OnPropertyChanged();
+                ResetPage();
+                LoadPayments();
+            }
+        }
+
+        public string SelectedStatus
+        {
+            get => _selectedStatus;
+            set
+            {
+                _selectedStatus = value;
+                OnPropertyChanged();
+                ResetPage();
+                LoadPayments();
+            }
+        }
+
+        public DateTime? DateFrom
+        {
+            get => _dateFrom;
+            set
+            {
+                _dateFrom = value;
+                OnPropertyChanged();
+                ResetPage();
+                LoadPayments();
+            }
+        }
+
+        public DateTime? DateTo
+        {
+            get => _dateTo;
+            set
+            {
+                _dateTo = value;
+                OnPropertyChanged();
+                ResetPage();
                 LoadPayments();
             }
         }
@@ -99,7 +151,22 @@ namespace AquaPark.ViewModel
             BackCommand = new RelayCommand(Back);
             ClearSearchCommand = new RelayCommand(ClearSearch);
 
+            Statuses = new ObservableCollection<string>
+            {
+                "Все",
+                "Оплачено",
+                "Частично оплачено",
+                "Ожидает оплаты",
+                "Отменено"
+            };
+
             SetRoleAccess();
+            StatusAutomationService.UpdatePaymentStatuses();
+            LoadPayments();
+        }
+
+        protected override void LoadPage()
+        {
             LoadPayments();
         }
 
@@ -114,25 +181,40 @@ namespace AquaPark.ViewModel
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
+                string searchText = SearchText.ToLower();
+
                 query = query.Where(p =>
-                    p.Sale.SaleId.ToString().Contains(SearchText) ||
-                    p.Sale.Ticket.Client.FullName.Contains(SearchText) ||
-                    p.PaymentMethod.Contains(SearchText) ||
-                    p.PaymentStatus.Contains(SearchText) ||
-                    p.Amount.ToString().Contains(SearchText));
+                    p.Sale.SaleId.ToString().Contains(searchText) ||
+                    (p.Sale.Ticket.Client != null && p.Sale.Ticket.Client.FullName.ToLower().Contains(searchText)) ||
+                    p.PaymentMethod.ToLower().Contains(searchText) ||
+                    p.PaymentStatus.ToLower().Contains(searchText) ||
+                    p.Amount.ToString().Contains(searchText));
             }
 
-            Payments = new ObservableCollection<Payment>(
-                query.ToList()
-            );
+            if (!string.IsNullOrWhiteSpace(SelectedStatus) && SelectedStatus != "Все")
+            {
+                query = query.Where(p => p.PaymentStatus == SelectedStatus);
+            }
+
+            if (DateFrom.HasValue)
+            {
+                query = query.Where(p => p.PaymentDate >= DateFrom.Value.Date);
+            }
+
+            if (DateTo.HasValue)
+            {
+                DateTime to = DateTo.Value.Date.AddDays(1);
+                query = query.Where(p => p.PaymentDate < to);
+            }
+
+            query = ApplyPaging(query.OrderByDescending(p => p.PaymentDate));
+
+            Payments = new ObservableCollection<Payment>(query.ToList());
         }
 
         private void Add(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AddPaymentPage());
-            }
+            NavigationService.Navigate(new AddPaymentPage());
         }
 
         private void Edit(object? parameter)
@@ -146,10 +228,7 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new EditPaymentPage(SelectedPayment.PaymentId));
-            }
+            NavigationService.Navigate(new EditPaymentPage(SelectedPayment.PaymentId));
         }
 
         private void Delete(object? parameter)
@@ -187,6 +266,7 @@ namespace AquaPark.ViewModel
 
             AppData.db.Payments.Remove(payment);
             AppData.db.SaveChanges();
+            AuditService.Log("Удаление", "Оплаты", payment.PaymentId, $"Сумма: {payment.Amount:N2}");
 
             LoadPayments();
 
@@ -204,14 +284,14 @@ namespace AquaPark.ViewModel
         private void ClearSearch(object? parameter)
         {
             SearchText = string.Empty;
+            SelectedStatus = "Все";
+            DateFrom = null;
+            DateTo = null;
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new MenuPage());
-            }
+            NavigationService.Navigate(new MenuPage());
         }
 
         private void SetRoleAccess()

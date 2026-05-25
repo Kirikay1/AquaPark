@@ -10,6 +10,10 @@ namespace AquaPark.Services
         private const string Attractions = "Attractions";
         private const string Sales = "Sales";
         private const string Payments = "Payments";
+        private const string Schedules = "Schedules";
+        private const string Reports = "Reports";
+        private const string Users = "Users";
+        private const string Logs = "Logs";
 
         public static bool CanAddOrEdit(string sectionName)
         {
@@ -35,9 +39,19 @@ namespace AquaPark.Services
             return AppData.CurrentUser?.Role?.RoleName == "Администратор";
         }
 
+        public static bool CanManageUsers()
+        {
+            return CanDelete();
+        }
+
         public static bool CanOpenMenuSection(string sectionName)
         {
             string roleName = AppData.CurrentUser?.Role?.RoleName ?? "";
+
+            if (sectionName == Users || sectionName == Logs)
+            {
+                return CanManageUsers();
+            }
 
             if (roleName == "Администратор" || roleName == "Менеджер")
             {
@@ -53,7 +67,14 @@ namespace AquaPark.Services
 
             if (roleName == "Сотрудник")
             {
-                return sectionName == Attractions;
+                return sectionName == Attractions
+                    || sectionName == Schedules;
+            }
+
+            if (sectionName == Reports)
+            {
+                return roleName == "Администратор"
+                    || roleName == "Менеджер";
             }
 
             return false;

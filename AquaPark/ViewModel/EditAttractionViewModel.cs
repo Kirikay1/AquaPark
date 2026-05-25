@@ -115,6 +115,7 @@ namespace AquaPark.ViewModel
 
             LoadData();
             LoadAttraction();
+            EnableUnsavedChangesTracking();
         }
 
         private void LoadData()
@@ -175,22 +176,20 @@ namespace AquaPark.ViewModel
             attraction.HeightLimit = HeightLimit;
             attraction.IsActive = IsActive;
 
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Данные аттракциона успешно изменены"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Данные аттракциона успешно изменены",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            AuditService.Log("Изменение", "Аттракционы", attraction.AttractionId, attraction.AttractionName);
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AttractionsPage());
-            }
+            NavigationService.Navigate(new AttractionsPage());
         }
     }
 }

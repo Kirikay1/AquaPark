@@ -116,6 +116,7 @@ namespace AquaPark.ViewModel
 
             LoadData();
             LoadPayment();
+            EnableUnsavedChangesTracking();
         }
 
         private void LoadData()
@@ -173,6 +174,12 @@ namespace AquaPark.ViewModel
                 return;
             }
 
+            if (DuplicateCheckService.PaymentExceedsSaleAmount(SelectedSale.SaleId, Amount, _paymentId))
+            {
+                ErrorMessage = "Сумма оплат не должна превышать сумму продажи";
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(SelectedPaymentMethod))
             {
                 ErrorMessage = "Выберите способ оплаты";
@@ -197,24 +204,25 @@ namespace AquaPark.ViewModel
             payment.SaleId = SelectedSale.SaleId;
             payment.Amount = Amount;
             payment.PaymentMethod = SelectedPaymentMethod;
-            payment.PaymentStatus = SelectedPaymentStatus;
+            payment.PaymentStatus = SelectedPaymentStatus == "Отменено"
+                ? "Отменено"
+                : StatusAutomationService.GetSalePaymentStatus(SelectedSale.SaleId, SelectedSale.TotalAmount, _paymentId, Amount);
 
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Данные оплаты успешно изменены"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Данные оплаты успешно изменены",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            StatusAutomationService.UpdatePaymentStatuses();
+            AuditService.Log("Изменение", "Оплаты", payment.PaymentId, $"Сумма: {payment.Amount:N2}");
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new PaymentsPage());
-            }
+            NavigationService.Navigate(new PaymentsPage());
         }
     }
 }

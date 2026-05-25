@@ -10,14 +10,16 @@ using System.Windows.Input;
 
 namespace AquaPark.ViewModel
 {
-    public class TicketsViewModel : BaseViewModel
+    public class TicketsViewModel : PagedTableViewModel
     {
         private const string SectionName = "Tickets";
 
         private ObservableCollection<Ticket> _tickets = null!;
+        private ObservableCollection<string> _statuses = null!;
         private Ticket _selectedTicket = null!;
 
         private string _searchText = string.Empty;
+        private string _selectedStatus = "Все";
         private Visibility _addButtonVisibility = Visibility.Visible;
         private Visibility _editButtonVisibility = Visibility.Visible;
         private Visibility _deleteButtonVisibility = Visibility.Visible;
@@ -28,6 +30,16 @@ namespace AquaPark.ViewModel
             set
             {
                 _tickets = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> Statuses
+        {
+            get => _statuses;
+            set
+            {
+                _statuses = value;
                 OnPropertyChanged();
             }
         }
@@ -49,6 +61,19 @@ namespace AquaPark.ViewModel
             {
                 _searchText = value;
                 OnPropertyChanged();
+                ResetPage();
+                LoadTickets();
+            }
+        }
+
+        public string SelectedStatus
+        {
+            get => _selectedStatus;
+            set
+            {
+                _selectedStatus = value;
+                OnPropertyChanged();
+                ResetPage();
                 LoadTickets();
             }
         }
@@ -99,7 +124,22 @@ namespace AquaPark.ViewModel
             BackCommand = new RelayCommand(Back);
             ClearSearchCommand = new RelayCommand(ClearSearch);
 
+            Statuses = new ObservableCollection<string>
+            {
+                "Все",
+                "Активен",
+                "Истек",
+                "Использован",
+                "Отменен"
+            };
+
             SetRoleAccess();
+            StatusAutomationService.UpdateTicketStatuses();
+            LoadTickets();
+        }
+
+        protected override void LoadPage()
+        {
             LoadTickets();
         }
 
@@ -113,23 +153,27 @@ namespace AquaPark.ViewModel
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
+                string searchText = SearchText.ToLower();
+
                 query = query.Where(t =>
-                    t.Status.Contains(SearchText) ||
-                    t.TicketType.TicketName.Contains(SearchText) ||
-                    (t.Client != null && t.Client.FullName.Contains(SearchText)));
+                    t.Status.ToLower().Contains(searchText) ||
+                    t.TicketType.TicketName.ToLower().Contains(searchText) ||
+                    (t.Client != null && t.Client.FullName.ToLower().Contains(searchText)));
             }
 
-            Tickets = new ObservableCollection<Ticket>(
-                query.ToList()
-            );
+            if (!string.IsNullOrWhiteSpace(SelectedStatus) && SelectedStatus != "Все")
+            {
+                query = query.Where(t => t.Status == SelectedStatus);
+            }
+
+            query = ApplyPaging(query.OrderByDescending(t => t.PurchaseDate));
+
+            Tickets = new ObservableCollection<Ticket>(query.ToList());
         }
 
         private void Add(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new AddTicketPage());
-            }
+            NavigationService.Navigate(new AddTicketPage());
         }
 
         private void Edit(object? parameter)
@@ -143,10 +187,7 @@ namespace AquaPark.ViewModel
                 return;
             }
 
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new EditTicketPage(SelectedTicket.TicketId));
-            }
+            NavigationService.Navigate(new EditTicketPage(SelectedTicket.TicketId));
         }
 
         private void Delete(object? parameter)
@@ -186,6 +227,7 @@ namespace AquaPark.ViewModel
             {
                 AppData.db.Tickets.Remove(ticket);
                 AppData.db.SaveChanges();
+                AuditService.Log("Удаление", "Билеты", ticket.TicketId, ticket.Status);
             }
             catch (DbUpdateException)
             {
@@ -214,14 +256,12 @@ namespace AquaPark.ViewModel
         private void ClearSearch(object? parameter)
         {
             SearchText = string.Empty;
+            SelectedStatus = "Все";
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new MenuPage());
-            }
+            NavigationService.Navigate(new MenuPage());
         }
 
         private void SetRoleAccess()

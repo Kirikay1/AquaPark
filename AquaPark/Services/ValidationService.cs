@@ -90,6 +90,36 @@ namespace AquaPark.Services
             return true;
         }
 
+        public static bool ValidateSchedule(DateTime? workDate, string startTimeText, string endTimeText, out string errorMessage)
+        {
+            if (workDate == null)
+            {
+                errorMessage = "Выберите дату работы";
+                return false;
+            }
+
+            if (!TimeOnly.TryParse(startTimeText, out TimeOnly startTime))
+            {
+                errorMessage = "Введите время начала в формате ЧЧ:ММ";
+                return false;
+            }
+
+            if (!TimeOnly.TryParse(endTimeText, out TimeOnly endTime))
+            {
+                errorMessage = "Введите время окончания в формате ЧЧ:ММ";
+                return false;
+            }
+
+            if (endTime <= startTime)
+            {
+                errorMessage = "Время окончания должно быть позже времени начала";
+                return false;
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
         private static bool IsValidEmail(string email)
         {
             try

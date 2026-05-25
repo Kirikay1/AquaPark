@@ -94,6 +94,7 @@ namespace AquaPark.ViewModel
 
             LoadData();
             LoadSale();
+            EnableUnsavedChangesTracking();
         }
 
         private void LoadData()
@@ -142,6 +143,12 @@ namespace AquaPark.ViewModel
                 return;
             }
 
+            if (DuplicateCheckService.TicketHasSale(SelectedTicket.TicketId, _saleId))
+            {
+                ErrorMessage = "По выбранному билету уже есть продажа";
+                return;
+            }
+
             if (!ValidationService.ValidatePositiveAmount(TotalAmount, out string errorMessage))
             {
                 ErrorMessage = errorMessage;
@@ -161,22 +168,21 @@ namespace AquaPark.ViewModel
             sale.EmployeeId = SelectedEmployee.EmployeeId;
             sale.TotalAmount = TotalAmount;
 
-            AppData.db.SaveChanges();
+            if (!DatabaseErrorService.TrySaveChanges("Данные продажи успешно изменены"))
+            {
+                return;
+            }
 
-            MessageBox.Show("Данные продажи успешно изменены",
-                            "Сохранение",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+            StatusAutomationService.UpdatePaymentStatuses();
+            AuditService.Log("Изменение", "Продажи", sale.SaleId, $"Сумма: {sale.TotalAmount:N2}");
+            MarkAsSaved();
 
             Back(null);
         }
 
         private void Back(object? parameter)
         {
-            if (Application.Current.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.OpenPage(new SalesPage());
-            }
+            NavigationService.Navigate(new SalesPage());
         }
     }
 }

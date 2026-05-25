@@ -9,6 +9,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <DockPanel Grid.Row="0" Margin="0 0 0 20">
@@ -92,6 +93,28 @@
                      BorderThickness="1"
                      Margin="10 0 0 0"/>
 
+            <TextBlock Text="Зона:"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       Foreground="#333333"
+                       Margin="15 0 0 8"/>
+
+            <ComboBox ItemsSource="{Binding Zones}"
+                      SelectedItem="{Binding SelectedZone}"
+                      Width="140"
+                      Margin="10 0 0 8"/>
+
+            <TextBlock Text="Активность:"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       Foreground="#333333"
+                       Margin="15 0 0 8"/>
+
+            <ComboBox ItemsSource="{Binding ActiveFilters}"
+                      SelectedItem="{Binding SelectedActiveFilter}"
+                      Width="140"
+                      Margin="10 0 0 8"/>
+
             <Button Content="Очистить"
                     Width="110"
                     Height="36"
@@ -145,5 +168,12 @@
             </DataGrid.Columns>
         </DataGrid>
 
-    </Grid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 12 0 0">
+            <Button Content="|&lt;" Width="45" Height="32" Margin="0 0 8 0" Command="{Binding FirstPageCommand}"/>
+            <Button Content="&lt;" Width="45" Height="32" Margin="0 0 12 0" Command="{Binding PreviousPageCommand}"/>
+            <TextBlock Text="{Binding PageInfo}" VerticalAlignment="Center" FontSize="14" Foreground="#333333"/>
+            <Button Content="&gt;" Width="45" Height="32" Margin="12 0 8 0" Command="{Binding NextPageCommand}"/>
+            <Button Content="&gt;|" Width="45" Height="32" Command="{Binding LastPageCommand}"/>
+        </StackPanel>    </Grid>
 </Page>
